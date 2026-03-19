@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign In — MicroConnect</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--surface2:#eeecea;--border:#dddbd6;--text:#111110;--muted:#7a7872;--accent:#0e5fff;--accent-dark:#0040cc;--accent-light:#e8eeff;--green:#18a060;--red:#d93025;--dark:#111110;--ff-d:'Syne',sans-serif;--ff-b:'DM Sans',sans-serif;--ff-m:'DM Mono',monospace;--shadow-lg:0 8px 40px rgba(0,0,0,.13);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--ff-b);font-size:15px;min-height:100vh;display:flex;flex-direction:column}
+nav{background:var(--surface);border-bottom:1px solid var(--border);height:64px;padding:0 32px;display:flex;align-items:center}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:20px;height:20px}
+.logo-text{font-family:var(--ff-d);font-weight:800;font-size:18px;color:var(--text);letter-spacing:-.02em}
+.logo-text span{color:var(--accent)}
+.nav-back{margin-left:auto;text-decoration:none;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px}
+.nav-back:hover{color:var(--text)}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:420px;box-shadow:var(--shadow-lg)}
+.card-logo{display:flex;justify-content:center;margin-bottom:28px}
+.card-title{font-family:var(--ff-d);font-weight:800;font-size:26px;text-align:center;margin-bottom:6px}
+.card-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:32px}
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.fi{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--ff-b);font-size:14px;color:var(--text);outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--accent)}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-radius:8px;font-family:var(--ff-b);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none;width:100%}
+.btn-primary{background:var(--accent);color:#fff;margin-top:8px}.btn-primary:hover{background:var(--accent-dark)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);margin-top:10px}.btn-outline:hover{background:var(--surface2)}
+.err{color:var(--red);font-size:12px;margin-top:6px;display:none}.err.show{display:block}
+.divider{text-align:center;color:var(--muted);font-size:12px;margin:20px 0;position:relative}
+.divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
+.divider span{background:var(--surface);padding:0 12px;position:relative}
+.footer-note{text-align:center;margin-top:24px;font-size:13px;color:var(--muted)}
+.footer-note a{color:var(--accent);text-decoration:none}.footer-note a:hover{text-decoration:underline}
+.forgot{display:block;text-align:right;font-size:12px;color:var(--accent);text-decoration:none;margin-top:4px}
+.forgot:hover{text-decoration:underline}
+.success-box{background:var(--accent-light);border:1px solid var(--accent);border-radius:10px;padding:16px;text-align:center;display:none}
+.success-box.show{display:block}
+</style>
+</head>
+<body>
+<script>
+const SUPABASE_URL='YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY='YOUR_SUPABASE_ANON_KEY';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session) window.location.href='index.html';
+  }catch(e){}
+  document.getElementById('loginForm').addEventListener('submit',async(e)=>{
+    e.preventDefault();
+    const errEl=document.getElementById('loginErr');errEl.classList.remove('show');
+    const btn=document.getElementById('loginBtn');btn.textContent='Signing in...';btn.disabled=true;
+    const {error}=await sb.auth.signInWithPassword({email:document.getElementById('email').value,password:document.getElementById('password').value});
+    if(error){errEl.textContent=error.message;errEl.classList.add('show');btn.textContent='Sign In';btn.disabled=false;return;}
+    window.location.href='index.html';
+  });
+  document.getElementById('forgotBtn').addEventListener('click',async()=>{
+    const email=document.getElementById('email').value;
+    if(!email){document.getElementById('loginErr').textContent='Enter your email first.';document.getElementById('loginErr').classList.add('show');return;}
+    await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/index.html'});
+    document.getElementById('successBox').textContent='Password reset email sent to '+email;
+    document.getElementById('successBox').classList.add('show');
+  });
+});
+</script>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" fill="white"/><rect x="11" y="3" width="6" height="6" rx="1.5" fill="white" opacity=".6"/><rect x="3" y="11" width="6" height="6" rx="1.5" fill="white" opacity=".6"/><rect x="11" y="11" width="6" height="6" rx="1.5" fill="white" opacity=".3"/></svg></div>
+    <span class="logo-text">Micro<span>Connect</span></span>
+  </a>
+  <a href="index.html" class="nav-back">← Back to store</a>
+</nav>
+<main>
+  <div class="card">
+    <div class="card-logo">
+      <div class="logo-icon" style="width:48px;height:48px"><svg viewBox="0 0 20 20" fill="none" style="width:28px;height:28px"><rect x="3" y="3" width="6" height="6" rx="1.5" fill="white"/><rect x="11" y="3" width="6" height="6" rx="1.5" fill="white" opacity=".6"/><rect x="3" y="11" width="6" height="6" rx="1.5" fill="white" opacity=".6"/><rect x="11" y="11" width="6" height="6" rx="1.5" fill="white" opacity=".3"/></svg></div>
+    </div>
+    <div class="card-title">Welcome back</div>
+    <div class="card-sub">Sign in to your MicroConnect account</div>
+    <div class="success-box" id="successBox"></div>
+    <form id="loginForm">
+      <div class="fg">
+        <label class="fl">Email address</label>
+        <input class="fi" id="email" type="email" placeholder="you@example.com" required autocomplete="email"/>
+      </div>
+      <div class="fg">
+        <label class="fl">Password</label>
+        <input class="fi" id="password" type="password" placeholder="••••••••" required autocomplete="current-password"/>
+        <a href="#" class="forgot" id="forgotBtn">Forgot password?</a>
+      </div>
+      <div class="err" id="loginErr"></div>
+      <button type="submit" class="btn btn-primary" id="loginBtn">Sign In</button>
+    </form>
+    <div class="divider"><span>or</span></div>
+    <a href="index.html" class="btn btn-outline">Continue as Guest</a>
+    <div class="footer-note">Don't have an account? <a href="register.html">Register here</a></div>
+  </div>
+</main>
+</body>
+</html>
